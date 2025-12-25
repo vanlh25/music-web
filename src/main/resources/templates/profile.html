@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+<head>
+    <title>User Profile - Music AI</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 1. Ẩn thanh music player */
+        #musicPlayer {
+            display: none !important;
+        }
+
+        /* 2. Xóa khoảng trống thừa dưới chân trang (do layout gốc để chừa chỗ cho player) */
+        body {
+            padding-bottom: 0 !important;
+        }
+        /* --- COPY TỪ DASHBOARD.HTML --- */
+        :root {
+            --primary: #00f3ff;
+            --primary-dark: #00b8c4;
+            --secondary: #ff3366;
+            --bg-dark: #050505;
+            --bg-card: rgba(17, 17, 17, 0.95);
+            --text-light: #f0f0f0;
+            --text-muted: #888888;
+            --border-color: #333;
+            --danger: #ff3333;
+            --success: #00ff88;
+            --shadow-glow: 0 0 15px rgba(0, 243, 255, 0.15);
+            --bg-input: #1a1a1a;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+        }
+
+
+
+
+
+        h1, h2 { margin-bottom: 20px; color: var(--primary); }
+
+        /* --- Cards & Form Styles --- */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+            background: linear-gradient(180deg, var(--primary), var(--secondary));
+        }
+
+        .card h3 {
+            color: var(--primary);
+            font-size: 1.4rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 1px solid rgba(0, 243, 255, 0.3);
+            display: flex; align-items: center; gap: 0.8rem;
+        }
+
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: 0.8rem; color: var(--text-light); font-weight: 500; }
+
+        input, textarea {
+            width: 100%;
+            background: var(--bg-input);
+            color: var(--text-light);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 1rem;
+        }
+
+        input:focus, textarea:focus {
+            outline: none; border-color: var(--primary); box-shadow: var(--shadow-glow);
+        }
+
+        .btn-save {
+            background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+            border: none; padding: 0.8rem 2rem; color: #000; font-weight: 700;
+            border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem;
+        }
+        .btn-save:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0, 243, 255, 0.4); }
+
+        .info-row {
+            display: flex; justify-content: space-between; padding: 1rem;
+            background: rgba(26, 26, 26, 0.6); border-radius: 8px; border-left: 3px solid var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .success-message {
+            color: var(--success); background: rgba(0, 255, 136, 0.1); border: 1px solid rgba(0, 255, 136, 0.3);
+            padding: 1rem; border-radius: 8px; margin-top: 1rem;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+
+
+    </style>
+</head>
+<body>
+
+
+
+<div layout:fragment="content">
+
+    <div class="card">
+        <h2>👤 Thông tin cá nhân</h2>
+        <form action="/profile/update" method="post">
+            <div class="form-group">
+                <label>Email / Username</label>
+                <input type="text" th:value="${email != null ? email : username}" disabled
+                       style="background: #333; color: #888;">
+            </div>
+            <div class="form-group">
+                <label>Tên hiển thị (Full Name)</label>
+                <input type="text" name="fullName" th:value="${username}" required>
+            </div>
+            <button type="submit" class="btn-save"><i class="fas fa-save"></i> Lưu thay đổi</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h3>🖼️ Profile Picture</h3>
+        <div style="display: flex; align-items: center; gap: 2rem;">
+            <img th:src="${avatarUrl}" alt="Avatar"
+                 style="width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
+
+            <form th:action="@{/profile/upload-avatar}" method="post" enctype="multipart/form-data" style="flex: 1;">
+                <div class="form-group">
+                    <label>Upload new picture:</label>
+                    <input type="file" name="avatarFile" accept="image/*" required>
+                </div>
+                <button type="submit" class="btn-save">Upload</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card" th:if="${provider != null and provider.name() == 'LOCAL'}">
+        <h3>🔒 Security Settings</h3>
+        <form th:action="@{/profile/change-password}" method="post">
+            <div class="form-group">
+                <label>Current Password</label>
+                <input type="password" name="oldPassword" required>
+            </div>
+            <div class="form-group">
+                <label>New Password</label>
+                <input type="password" name="newPassword" required>
+            </div>
+            <button type="submit" class="btn-save" style="background: linear-gradient(45deg, #ff3366, #ff6b6b); color: white;">
+                Change Password
+            </button>
+        </form>
+    </div>
+
+    <div th:if="${param.success}" class="success-message">
+        <span>✅</span> <span th:text="${param.success}">Action successful!</span>
+    </div>
+    <div th:if="${param.error}" class="success-message" style="border-color: red; color: red;">
+        <span>⚠️</span> <span th:text="${param.error}">Error occurred!</span>
+    </div>
+
+    <div class="card">
+        <h3>🎯 Account Information</h3>
+        <div class="info-row">
+            <span>Username:</span>
+            <span style="font-weight: bold;" th:text="${username}">admin</span>
+        </div>
+        <div class="info-row">
+            <span>Role:</span>
+            <span style="color: var(--primary); font-weight: bold;" th:text="${role}">USER</span>
+        </div>
+    </div>
+
+<!--
+    <div class="card">
+        <h3>🤖 AI Preferences</h3>
+        <form th:action="@{/profile/update}" method="post" th:object="${preference}">
+            <div class="form-group">
+                <label>🎧 Describe your music listening habits:</label>
+                <textarea th:field="*{listeningPattern}" rows="4" maxlength="500"></textarea>
+            </div>
+            <button type="submit" class="btn-save">💾 UPDATE PREFERENCES</button>
+        </form>
+    </div>
+-->
+</div>
+
+</body>
+</html>

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Music AI - Home</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* 1. Ẩn thanh music player */
+        #musicPlayer {
+            display: none !important;
+        }
+
+        /* 2. Xóa khoảng trống thừa dưới chân trang (do layout gốc để chừa chỗ cho player) */
+        body {
+            padding-bottom: 0 !important;
+        }
+        /* --- COPY TỪ DASHBOARD.HTML --- */
+        :root {
+            --primary: #00f3ff;
+            --primary-dark: #00b8c4;
+            --secondary: #ff3366;
+            --bg-dark: #050505;
+            --bg-card: rgba(17, 17, 17, 0.95);
+            --text-light: #f0f0f0;
+            --text-muted: #888888;
+            --border-color: #333;
+            --danger: #ff3333;
+            --success: #00ff88;
+            --shadow-glow: 0 0 15px rgba(0, 243, 255, 0.15);
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        a { text-decoration: none; color: inherit; }
+
+
+
+        .brand {
+            color: var(--primary);
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 15px;
+            color: var(--text-muted);
+            text-decoration: none;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: all 0.3s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(0, 243, 255, 0.1);
+            color: var(--primary);
+        }
+
+        .nav-link.active { border-left: 3px solid var(--primary); }
+
+        /* --- Main Content (Layout chuẩn) --- */
+        .main-content {
+            margin-left: 250px; /* Quan trọng: Đẩy nội dung sang phải */
+            flex: 1;
+            padding: 30px;
+            width: calc(100% - 250px);
+        }
+
+        /* --- Components riêng của trang Home --- */
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+
+        .search-bar {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 10px 20px;
+            width: 400px;
+            color: #fff;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .search-input { background: transparent; border: none; color: white; width: 100%; outline: none; }
+
+        .btn-login {
+            background: var(--primary); color: black; padding: 8px 20px; border-radius: 20px; font-weight: bold;
+        }
+        .btn-login:hover { box-shadow: var(--shadow-glow); }
+
+        .banner {
+            background: linear-gradient(90deg, #ff3366, #ff6b6b);
+            height: 200px; border-radius: 12px; display: flex; align-items: center; padding: 40px;
+            margin-bottom: 40px;
+        }
+        .banner h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 10px; color: white; }
+
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; margin-bottom: 40px; }
+
+        .song-card {
+            background: var(--bg-card); padding: 15px; border-radius: 8px;
+            border: 1px solid transparent; cursor: pointer; position: relative;
+        }
+        .song-card:hover { border-color: var(--primary); background: #222; }
+
+        .card-img {
+            width: 100%; aspect-ratio: 1/1; background-color: #333; border-radius: 4px; margin-bottom: 15px;
+            display: flex; justify-content: center; align-items: center; font-size: 3rem; position: relative;
+        }
+
+        .play-btn {
+            position: absolute; bottom: 10px; right: 10px; width: 40px; height: 40px;
+            background: var(--primary); border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            opacity: 0; transition: 0.3s; color: black;
+        }
+        .song-card:hover .play-btn { opacity: 1; bottom: 15px; }
+
+        .card-title { font-weight: bold; margin-bottom: 5px; color: var(--text-light); }
+        .card-desc { color: var(--text-muted); font-size: 0.9rem; }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+
+    </style>
+</head>
+<body>
+
+
+<div layout:fragment="content">
+
+    <header>
+        <!--
+        <div class="search-bar">
+            <i class="fas fa-search" style="color: var(--text-muted);"></i>
+            <input type="text" class="search-input" placeholder="Tìm kiếm bài hát, nghệ sĩ...">
+        </div>
+        -->
+
+        <div class="auth-buttons">
+            <div th:if="${!isLoggedIn}">
+                <a href="/register" style="color: var(--text-muted); font-weight: bold; margin-right: 20px;">Đăng ký</a>
+                <a href="/login" class="btn-login">Đăng nhập</a>
+            </div>
+
+            <div th:if="${isLoggedIn}" style="display: flex; align-items: center; gap: 15px;">
+                <a th:if="${isAdmin}" href="/admin/dashboard"
+                   style="color: var(--primary); border: 1px solid var(--primary); padding: 5px 12px; border-radius: 15px; font-size: 0.8rem;">
+                    <i class="fas fa-bolt"></i> Admin
+                </a>
+
+                <a href="/profile" style="display: flex; align-items: center; gap: 10px; text-decoration: none;">
+                    <span style="font-weight: bold; color: var(--text-light);" th:text="${username}">User</span>
+
+                    <img th:src="${avatarUrl}" alt="Avatar"
+                         style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary);">
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="banner">
+        <div>
+            <h1>Chill & Relax</h1>
+            <p style="color: rgba(255,255,255,0.9);">Tuyển tập những bài hát nhẹ nhàng giúp bạn thư giãn sau giờ làm việc căng thẳng.</p>
+        </div>
+    </div>
+<!--
+    <h2 style="color: var(--text-light);">Gợi ý cho bạn</h2>
+    <div class="card-grid">
+        <div class="song-card">
+            <div class="card-img">🎵 <div class="play-btn"><i class="fas fa-play"></i></div></div>
+            <div class="card-title">Nhạc Lofi Chill</div>
+            <div class="card-desc">Mưa, Cà phê & Code</div>
+        </div>
+        <div class="song-card">
+            <div class="card-img">🎸 <div class="play-btn"><i class="fas fa-play"></i></div></div>
+            <div class="card-title">Acoustic Việt</div>
+            <div class="card-desc">Những bản hit nhẹ nhàng</div>
+        </div>
+        <div class="song-card">
+            <div class="card-img">🎹 <div class="play-btn"><i class="fas fa-play"></i></div></div>
+            <div class="card-title">Piano Focus</div>
+            <div class="card-desc">Tập trung làm việc</div>
+        </div>
+        <div class="song-card">
+            <div class="card-img">🎤 <div class="play-btn"><i class="fas fa-play"></i></div></div>
+            <div class="card-title">US-UK Top Hits</div>
+            <div class="card-desc">Nhạc thịnh hành</div>
+        </div>
+    </div>
+
+    <h2 style="color: var(--text-light);">Bảng Xếp Hạng</h2>
+    <div class="card-grid">
+        <div class="song-card">
+            <div class="card-title" style="color: var(--primary); font-size: 1.5rem;">#1</div>
+            <div class="card-title">Chúng ta của tương lai</div>
+            <div class="card-desc">Sơn Tùng M-TP</div>
+        </div>
+        <div class="song-card">
+            <div class="card-title" style="color: var(--secondary); font-size: 1.5rem;">#2</div>
+            <div class="card-title">Nâng chén tiêu sầu</div>
+            <div class="card-desc">Bích Phương</div>
+        </div>
+        <div class="song-card">
+            <div class="card-title" style="color: var(--success); font-size: 1.5rem;">#3</div>
+            <div class="card-title">Thiên Lý Ơi</div>
+            <div class="card-desc">Jack - J97</div>
+        </div>
+    </div>
+-->
+</div>
+
+</body>
+</html>

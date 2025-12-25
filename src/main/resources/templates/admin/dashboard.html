@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <title>Admin Dashboard - Music AI</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* 1. Ẩn thanh music player */
+    #musicPlayer {
+      display: none !important;
+    }
+
+    /* 2. Xóa khoảng trống thừa dưới chân trang (do layout gốc để chừa chỗ cho player) */
+    body {
+      padding-bottom: 0 !important;
+    }
+    /* --- Style Cyberpunk / Dark Mode --- */
+    :root {
+      --primary: #00f3ff;
+      --primary-dark: #00b8c4;
+      --secondary: #ff3366;
+      --bg-dark: #050505;
+      --bg-card: rgba(17, 17, 17, 0.95);
+      --text-light: #f0f0f0;
+      --text-muted: #888888;
+      --border-color: #333;
+      --danger: #ff3333;
+      --success: #00ff88;
+      --shadow-glow: 0 0 15px rgba(0, 243, 255, 0.15);
+    }
+
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-light);
+      min-height: 100vh;
+      display: flex;
+    }
+
+
+
+
+
+
+    h1 { margin-bottom: 30px; font-size: 2rem; }
+
+    /* --- Cards --- */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    .card h2 {
+      font-size: 1.2rem;
+      margin-bottom: 20px;
+      color: var(--text-light);
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+    }
+
+    /* --- Tables --- */
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+
+    th {
+      text-align: left;
+      padding: 12px;
+      color: var(--text-muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    td {
+      padding: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      vertical-align: middle;
+    }
+
+    /* --- Badges & Buttons --- */
+    .badge {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .role-admin { background: rgba(255, 51, 102, 0.2); color: var(--secondary); border: 1px solid var(--secondary); }
+    .role-user { background: rgba(0, 243, 255, 0.1); color: var(--primary); border: 1px solid var(--primary); }
+
+    .btn-action {
+      padding: 5px 10px;
+      border: 1px solid var(--border-color);
+      background: transparent;
+      color: var(--text-light);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.8rem;
+    }
+    .btn-action:hover { background: var(--border-color); }
+
+    .btn-lock { color: #ffaa00; border-color: #ffaa00; }
+    .btn-lock:hover { background: rgba(255, 170, 0, 0.1); }
+
+    .btn-unlock { color: var(--success); border-color: var(--success); }
+    .btn-unlock:hover { background: rgba(0, 255, 136, 0.1); }
+
+    .btn-delete { color: var(--danger); border-color: var(--danger); }
+    .btn-delete:hover { background: rgba(255, 51, 51, 0.1); }
+
+    /* User Info in Table */
+    .user-info { display: flex; align-items: center; gap: 10px; }
+    .user-avatar { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color); }
+    .user-placeholder { width: 30px; height: 30px; border-radius: 50%; background: #222; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #666; }
+  </style>
+</head>
+<body>
+
+
+
+<div layout:fragment="content">
+  <h1>Admin Dashboard</h1>
+
+  <div class="card">
+    <h2>👥 User Management</h2>
+
+    <div th:if="${param.message}" style="margin-bottom: 15px; color: var(--success);">
+      <i class="fas fa-check-circle"></i> <span th:text="${param.message}">Action completed</span>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+        <tr>
+          <th>ID</th>
+          <th>User (Full Name / Username)</th>
+          <th>Role</th>
+          <th>Provider</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="u : ${users}">
+          <td th:text="'#' + ${u.userId}">#1</td>
+
+          <td>
+            <div class="user-info">
+              <img th:if="${u.avatar != null}"
+                   th:src="${u.avatar.startsWith('http') ? u.avatar : '/uploads/avatars/' + u.avatar}"
+                   class="user-avatar">
+              <div th:unless="${u.avatar != null}" class="user-placeholder">
+                <i class="fas fa-user"></i>
+              </div>
+
+              <div>
+                <div style="font-weight: bold; color: white;"
+                     th:text="${(u.fullName != null && !#strings.isEmpty(u.fullName)) ? u.fullName : u.username}">
+                  User Name
+                </div>
+                <div style="font-size: 0.8rem; color: #666;"
+                     th:if="${u.fullName != null && !#strings.isEmpty(u.fullName)}"
+                     th:text="${u.username}">
+                  @username
+                </div>
+              </div>
+            </div>
+          </td>
+
+          <td>
+                            <span th:class="${'badge ' + (u.role.name() == 'ADMIN' ? 'role-admin' : 'role-user')}"
+                                  th:text="${u.role}">USER</span>
+          </td>
+
+          <td>
+                            <span th:if="${u.provider != null}" th:text="${u.provider}"
+                                  style="color: #aaa; font-size: 0.8rem;">LOCAL</span>
+            <span th:unless="${u.provider != null}" style="color: #aaa; font-size: 0.8rem;">LOCAL</span>
+          </td>
+
+          <td>
+            <span th:if="${!u.locked}" style="color: var(--success);">● Active</span>
+            <span th:if="${u.locked}" style="color: var(--danger);">● Locked</span>
+          </td>
+
+          <td>
+            <div th:if="${u.username != #authentication.name}" style="display: flex; gap: 8px;">
+              <form th:action="@{/admin/user/toggle-lock/{id}(id=${u.userId})}" method="post">
+                <button type="submit"
+                        th:class="'btn-action ' + (${u.locked} ? 'btn-unlock' : 'btn-lock')">
+                  <i th:class="${u.locked ? 'fas fa-unlock' : 'fas fa-lock'}"></i>
+                  <span th:text="${u.locked ? 'Unlock' : 'Lock'}">Lock</span>
+                </button>
+              </form>
+<!--
+              <form th:action="@{/admin/user/delete/{id}(id=${u.userId})}" method="post"
+                    onsubmit="return confirm('Are you sure? This action cannot be undone.');">
+                <button type="submit" class="btn-action btn-delete">
+                  <i class="fas fa-trash"></i>
+                </button>
+              </form>-->
+            </div>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>📜 System Logs</h2>
+    <div class="table-container" style="max-height: 500px; overflow-y: auto;">
+      <table>
+        <thead>
+        <tr>
+          <th style="width: 160px;">Time</th>
+          <th>User / Actor</th>
+          <th>Action</th>
+          <th>Description</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="log : ${logs}">
+          <td style="color: #aaa; font-family: monospace;"
+              th:text="${#temporals.format(log.time, 'HH:mm - dd/MM/yyyy')}">10:30</td>
+
+          <td>
+            <div th:if="${log.user != null}" class="user-info">
+              <img th:if="${log.user.avatar != null}"
+                   th:src="${log.user.avatar.startsWith('http') ? log.user.avatar : '/uploads/avatars/' + log.user.avatar}"
+                   class="user-avatar" style="width: 24px; height: 24px;">
+
+              <span th:text="${(log.user.fullName != null && !#strings.isEmpty(log.user.fullName)) ? log.user.fullName : log.user.username}"
+                    style="font-weight: bold;">User</span>
+            </div>
+
+            <div th:if="${log.user == null}">
+                                <span style="color: #666; font-style: italic;">
+                                    <i class="fas fa-user-secret"></i> Unknown / Guest
+                                </span>
+            </div>
+          </td>
+
+          <td>
+                            <span th:class="'badge ' +
+                                (${log.action == 'LOGIN'} ? 'role-user' :
+                                (${log.action == 'ERROR' || log.action == 'DELETE_USER'} ? 'role-admin' : ''))"
+                                  style="border: 1px solid rgba(255,255,255,0.2); color: white;"
+                                  th:text="${log.action}">LOGIN</span>
+          </td>
+
+          <td th:text="${log.description}" style="color: #ccc;">Description</td>
+        </tr>
+
+        <tr th:if="${#lists.isEmpty(logs)}">
+          <td colspan="4" style="text-align: center; padding: 30px; color: #666;">
+            No system logs found.
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
